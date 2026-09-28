@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FOUZAN OS — نظام تشغيل فوزان سنتر</title>
+<style>
+  :root{
+    --bg:#071018;
+    --bg2:#0b1621;
+    --card:#0f1d2a;
+    --card2:#112536;
+    --text:#eef5f8;
+    --muted:#8fa7b5;
+    --line:#1d3444;
+    --accent:#23c483;
+    --accent2:#4db6ff;
+    --warn:#ffbd4a;
+    --danger:#ff6464;
+    --purple:#9f7aea;
+    --shadow:0 20px 60px rgba(0,0,0,.28);
+  }
+  [data-theme="light"]{
+    --bg:#eef3f7;
+    --bg2:#f8fbfd;
+    --card:#ffffff;
+    --card2:#f7fafc;
+    --text:#16212b;
+    --muted:#667985;
+    --line:#dce6ec;
+    --shadow:0 18px 50px rgba(41,57,70,.10);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Tahoma,"Segoe UI",Arial,sans-serif;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(77,182,255,.10), transparent 32%),
+      radial-gradient(circle at 80% 0%, rgba(35,196,131,.08), transparent 35%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  button,select,input{font:inherit}
+  .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+  .sidebar{
+    position:sticky;top:0;height:100vh;padding:28px 18px;
+    background:rgba(7,16,24,.88);backdrop-filter:blur(18px);
+    border-left:1px solid var(--line);
+  }
+  [data-theme="light"] .sidebar{background:rgba(255,255,255,.90)}
+  .brand{display:flex;align-items:center;gap:12px;padding:0 10px 22px;border-bottom:1px solid var(--line)}
+  .logo{
+    width:46px;height:46px;border-radius:14px;
+    display:grid;place-items:center;font-weight:900;font-size:18px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#00150e;box-shadow:0 10px 30px rgba(35,196,131,.22)
+  }
+  .brand h1{font-size:18px;margin:0}
+  .brand small{display:block;color:var(--muted);margin-top:4px}
+  .nav{display:grid;gap:7px;margin-top:22px}
+  .nav button{
+    border:0;background:transparent;color:var(--muted);
+    padding:13px 14px;border-radius:12px;text-align:right;cursor:pointer;
+    display:flex;align-items:center;gap:10px;transition:.2s
+  }
+  .nav button:hover,.nav button.active{
+    background:linear-gradient(90deg,rgba(35,196,131,.15),rgba(77,182,255,.08));
+    color:var(--text);transform:translateX(-2px)
+  }
+  .nav .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+  .nav button.active .dot{background:var(--accent);box-shadow:0 0 0 5px rgba(35,196,131,.12)}
+  .side-note{
+    margin-top:24px;padding:14px;border:1px solid var(--line);border-radius:14px;
+    background:var(--card);color:var(--muted);font-size:12px;line-height:1.8
+  }
+  .main{padding:28px 34px 50px;overflow:hidden}
+  .topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:26px}
+  .topbar h2{margin:0 0 7px;font-size:30px}
+  .topbar p{margin:0;color:var(--muted)}
+  .top-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{
+    border:1px solid var(--line);background:var(--card);color:var(--text);
+    padding:10px 14px;border-radius:12px;cursor:pointer
+  }
+  .btn.primary{background:linear-gradient(135deg,var(--accent),#19a56c);border:none;color:#02130d;font-weight:800}
+  .page{display:none;animation:fade .3s ease}
+  .page.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .grid{display:grid;gap:16px}
+  .kpis{grid-template-columns:repeat(4,1fr);margin-bottom:16px}
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),var(--card);
+    border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)
+  }
+  .kpi .label{color:var(--muted);font-size:13px}
+  .kpi .value{font-size:29px;font-weight:900;margin:9px 0 5px}
+  .kpi .delta{font-size:12px}
+  .up{color:var(--accent)} .down{color:var(--danger)} .warn{color:var(--warn)}
+  .split{grid-template-columns:1.5fr 1fr;margin-top:16px}
+  .split-eq{grid-template-columns:1fr 1fr;margin-top:16px}
+  .card h3{margin:0 0 14px;font-size:17px}
+  .card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+  .card-head h3{margin:0}
+  .mini{font-size:12px;color:var(--muted)}
+  canvas{width:100%;height:260px;display:block}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:right}
+  th{color:var(--muted);font-weight:600}
+  tbody tr:hover{background:rgba(255,255,255,.025)}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;font-size:11px;border:1px solid var(--line)}
+  .b-green{color:#55dba0;background:rgba(35,196,131,.09)}
+  .b-yellow{color:#ffd06a;background:rgba(255,189,74,.09)}
+  .b-red{color:#ff8686;background:rgba(255,100,100,.09)}
+  .b-blue{color:#79c8ff;background:rgba(77,182,255,.09)}
+  .progress{height:9px;background:var(--bg2);border-radius:20px;overflow:hidden;border:1px solid var(--line)}
+  .progress span{height:100%;display:block;border-radius:20px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .section-title{margin:8px 0 16px;display:flex;justify-content:space-between;align-items:end;gap:16px}
+  .section-title h3{margin:0;font-size:22px}
+  .section-title p{margin:5px 0 0;color:var(--muted);font-size:13px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap}
+  select,input{
+    background:var(--card);border:1px solid var(--line);color:var(--text);
+    border-radius:10px;padding:9px 11px;outline:none
+  }
+  .metric-list{display:grid;gap:12px}
+  .metric-row{display:grid;grid-template-columns:125px 1fr 70px;align-items:center;gap:10px}
+  .metric-row .name{font-size:12px;color:var(--muted)}
+  .metric-row .num{font-size:12px;text-align:left}
+  .alerts{display:grid;gap:10px}
+  .alert{padding:13px;border-radius:12px;border:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+  .alert i{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:0 0 auto}
+  .alert strong{display:block;margin-bottom:3px;font-size:13px}
+  .alert span{font-size:12px;color:var(--muted)}
+  .alert.red i{background:var(--danger)} .alert.yellow i{background:var(--warn)} .alert.green i{background:var(--accent)}
+  .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .pipe{padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}
+  .pipe .n{font-size:25px;font-weight:900;margin-top:6px}
+  .kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .col{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:240px}
+  .col h4{margin:0 0 10px;font-size:13px;color:var(--muted)}
+  .task{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:9px}
+  .task strong{font-size:13px;display:block}
+  .task small{color:var(--muted);display:block;margin-top:6px}
+  .pill{display:inline-block;padding:4px 7px;border-radius:999px;font-size:10px;background:var(--bg2);border:1px solid var(--line);margin-top:8px}
+  .hero{
+    padding:24px;border:1px solid var(--line);border-radius:20px;
+    background:linear-gradient(120deg,rgba(35,196,131,.11),rgba(77,182,255,.08),transparent),var(--card);
+    display:grid;grid-template-columns:1.4fr .9fr;gap:18px;align-items:center;margin-bottom:16px
+  }
+  .hero h3{font-size:26px;margin:0 0 10px}
+  .hero p{color:var(--muted);line-height:1.9;margin:0}
+  .hero-stat{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hero-stat div{background:rgba(0,0,0,.10);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .hero-stat b{display:block;font-size:22px;margin-top:4px}
+  .foot{margin-top:30px;color:var(--muted);text-align:center;font-size:12px}
+  .spark{height:46px!important}
+  .mobile-menu{display:none}
+  @media(max-width:1100px){
+    .app{grid-template-columns:1fr}
+    .sidebar{position:fixed;right:-290px;z-index:20;width:280px;transition:.25s}
+    .sidebar.open{right:0}
+    .mobile-menu{display:inline-flex}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .split,.split-eq,.hero{grid-template-columns:1fr}
+    .pipeline{grid-template-columns:repeat(2,1fr)}
+    .kanban{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:650px){
+    .main{padding:18px}
+    .kpis,.pipeline,.kanban{grid-template-columns:1fr}
+    .topbar{align-items:flex-start}
+    .topbar h2{font-size:24px}
+    .hero-stat{grid-template-columns:1fr}
+    .metric-row{grid-template-columns:100px 1fr 58px}
+    table{font-size:11px}
+    th,td{padding:10px 6px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">FZ</div>
+      <div><h1>FOUZAN OS</h1><small>نظام التشغيل الإداري</small></div>
+    </div>
+    <div class="nav">
+      <button class="active" data-page="dashboard"><span class="dot"></span> لوحة الإدارة العليا</button>
+      <button data-page="sales"><span class="dot"></span> المبيعات والفروع</button>
+      <button data-page="inventory"><span class="dot"></span> المخزون والمشتريات</button>
+      <button data-page="marketing"><span class="dot"></span> التجارة الإلكترونية والتسويق</button>
+      <button data-page="tasks"><span class="dot"></span> المهام والاجتماعات</button>
+      <button data-page="architecture"><span class="dot"></span> هيكل النظام والتنفيذ</button>
+    </div>
+    <div class="side-note">
+      <b style="color:var(--text)">فكرة النظام</b><br>
+      إدخال المعلومة مرة واحدة، ثم تُستخدم تلقائيًا في التقارير، التنبيهات، ولوحات الإدارة.
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="pageTitle">لوحة الإدارة العليا</h2>
+        <p>نموذج تفاعلي تجريبي — البيانات أدناه أمثلة توضيحية وليست بيانات فعلية.</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn mobile-menu" onclick="toggleSidebar()">☰</button>
+        <select id="periodSelect" onchange="refreshDemo()">
+          <option>هذا الشهر</option>
+          <option>آخر 30 يوم</option>
+          <option>الربع الحالي</option>
+        </select>
+        <button class="btn" onclick="toggleTheme()">◐ تغيير المظهر</button>
+        <button class="btn primary" onclick="simulateUpdate()">↻ تحديث البيانات</button>
+      </div>
+    </div>
+
+    <section id="dashboard" class="page active">
+      <div class="hero">
+        <div>
+          <h3>مركز قيادة واحد لكل الشركة</h3>
+          <p>
+            هذا التصور يحول Google Sheets من ملفات متفرقة إلى نظام تشغيلي مترابط:
+            مبيعات، فروع، مخزون، مشتريات، تسعير، تسويق، تجارة إلكترونية، مهام واجتماعات —
+            مع مؤشرات وتنبيهات يتم تحديثها تلقائيًا.
+          </p>
+        </div>
+        <div class="hero-stat">
+          <div><span class="mini">إجمالي مبيعات الشهر</span><b id="heroSales">1,284,600 ر.س</b></div>
+          <div><span class="mini">نسبة تحقيق التارجت</span><b id="heroTarget">81.6%</b></div>
+          <div><span class="mini">مهام متأخرة</span><b style="color:var(--danger)">7</b></div>
+          <div><span class="mini">أصناف حرجة</span><b style="color:var(--warn)">18</b></div>
+        </div>
+      </div>
+
+      <div class="grid kpis">
+        <div class="card kpi"><div class="label">مبيعات اليوم</div><div class="value" id="kpiToday">48,320 ر.س</div><div class="delta up">▲ 12.4% عن أمس</div></div>
+        <div class="card kpi"><div class="label">متوسط الفاتورة</div><div class="value">312 ر.س</div><div class="delta up">▲ 4.1% عن الشهر الماضي</div></div>
+        <div class="card kpi"><div class="label">معدل التحويل بالفروع</div><div class="value">21.8%</div><div class="delta warn">▼ 1.7 نقطة</div></div>
+        <div class="card kpi"><div class="label">ROAS الإعلاني</div><div class="value">4.6x</div><div class="delta up">▲ 0.8x</div></div>
+      </div>
+
+      <div class="grid split">
+        <div class="card">
+          <div class="card-head"><h3>اتجاه المبيعات — 12 أسبوع</h3><span class="mini">مثال توضيحي</span></div>
+          <canvas id="salesTrend"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>تحقيق التارجت حسب القناة</h3><span class="mini">Target vs Actual</span></div>
+          <div class="metric-list">
+            <div class="metric-row"><div class="name">فرع الرياض</div><div class="progress"><span style="width:78%"></span></div><div class="num">78%</div></div>
+            <div class="metric-row"><div class="name">فرع الأحساء</div><div class="progress"><span style="width:86%"></span></div><div class="num">86%</div></div>
+            <div class="metric-row"><div class="name">المتجر الإلكتروني</div><div class="progress"><span style="width:74%"></span></div><div class="num">74%</div></div>
+            <div class="metric-row"><div class="name">نون</div><div class="progress"><span style="width:69%"></span></div><div class="num">69%</div></div>
+            <div class="metric-row"><div class="name">أمازون</div><div class="progress"><span style="width:91%"></span></div><div class="num">91%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid split-eq">
+        <div class="card">
+          <div class="card-head"><h3>تنبيهات الإدارة</h3><span class="mini">قواعد تلقائية</span></div>
+          <div class="alerts">
+            <div class="alert red"><i></i><div><strong>انخفاض مبيعات قسم الأثاث</strong><span>أقل من متوسط آخر 4 أسابيع بنسبة 18%.</span></div></div>
+            <div class="alert yellow"><i></i><div><strong>18 صنفًا مهددًا بالنفاد</strong><span>المخزون المتوقع أقل من 10 أيام بيع.</span></div></div>
+            <div class="alert red"><i></i><div><strong>7 مهام متأخرة</strong><span>3 منها مرتبطة بالمشتريات والفروع.</span></div></div>
+            <div class="alert green"><i></i><div><strong>تحسن أداء إعلانات Google</strong><span>ROAS ارتفع من 3.8x إلى 5.1x.</span></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>ملخص قنوات البيع</h3><span class="mini">هذا الشهر</span></div>
+          <table>
+            <thead><tr><th>القناة</th><th>المبيعات</th><th>الحصة</th><th>الحالة</th></tr></thead>
+            <tbody>
+              <tr><td>الرياض</td><td>492,000</td><td>38%</td><td><span class="badge b-yellow">قريب من التارجت</span></td></tr>
+              <tr><td>الأحساء</td><td>286,400</td><td>22%</td><td><span class="badge b-green">جيد</span></td></tr>
+              <tr><td>المتجر</td><td>324,700</td><td>25%</td><td><span class="badge b-blue">نمو</span></td></tr>
+              <tr><td>Marketplaces</td><td>181,500</td><td>15%</td><td><span class="badge b-red">يحتاج متابعة</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="sales" class="page">
+      <div class="section-title">
+        <div><h3>المبيعات والفروع</h3><p>ربط المبيعات بالزيارات، التارجت، الموظفين، والفئات.</p></div>
+        <div class="filters">
+          <select><option>كل الفروع</option><option>الرياض</option><option>الأحساء</option><option>المتجر الإلكتروني</option></select>
+          <select><option>سبتمبر 2026</option><option>أغسطس 2026</option><option>يوليو 2026</option></select>
+        </div>
+      </div>
+      <div class="grid kpis">
+        <div class="card kpi"><div class="label">إجمالي المبيعات</div><div class="value">1.28M</div><div class="delta up">▲ 8.3%</div></div>
+        <div class="card kpi"><div class="label">عدد الفواتير</div><div class="value">4,117</div><div class="delta up">▲ 5.0%</div></div>
+        <div class="card kpi"><div class="label">الزوار</div><div class="value">18,860</div><div class="delta down">▼ 2.1%</div></div>
+        <div class="card kpi"><div class="label">Conversion</div><div class="value">21.8%</div><div class="delta down">▼ 1.7 نقطة</div></div>
+      </div>
+      <div class="grid split">
+        <div class="card"><div class="card-head"><h3>مبيعات الفروع اليومية</h3><span class="mini">مثال 14 يوم</span></div><canvas id="branchChart"></canvas></div>
+        <div class="card">
+          <div class="card-head"><h3>تشخيص فرع الرياض</h3><span class="mini">مثال تحليلي</span></div>
+          <div class="metric-list">
+            <div class="metric-row"><div class="name">الزوار</div><div class="progress"><span style="width:92%"></span></div><div class="num">92%</div></div>
+            <div class="metric-row"><div class="name">عدد الفواتير</div><div class="progress"><span style="width:71%"></span></div><div class="num">71%</div></div>
+            <div class="metric-row"><div class="name">متوسط الفاتورة</div><div class="progress"><span style="width:84%"></span></div><div class="num">84%</div></div>
+            <div class="metric-row"><div class="name">تحقيق التارجت</div><div class="progress"><span style="width:78%"></span></div><div class="num">78%</div></div>
+          </div>
+          <div class="alert yellow" style="margin-top:16px"><i></i><div><strong>الاستنتاج التجريبي</strong><span>الزيارات قريبة من الطبيعي لكن عدد المشترين أقل؛ الأولوية تحسين التحويل داخل المعرض.</span></div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><h3>أداء الأقسام — مثال</h3><span class="mini">يمكن فرزه وربطه بالتارجت</span></div>
+        <table>
+          <thead><tr><th>القسم</th><th>المبيعات</th><th>النمو</th><th>متوسط الفاتورة</th><th>الحالة</th></tr></thead>
+          <tbody>
+            <tr><td>الأجهزة المنزلية</td><td>312,500</td><td class="up">+14.2%</td><td>355</td><td><span class="badge b-green">قوي</span></td></tr>
+            <tr><td>الأثاث</td><td>248,700</td><td class="down">-18.0%</td><td>1,145</td><td><span class="badge b-red">مراجعة</span></td></tr>
+            <tr><td>أدوات المطبخ</td><td>221,900</td><td class="up">+7.6%</td><td>184</td><td><span class="badge b-green">جيد</span></td></tr>
+            <tr><td>القهوة والضيافة</td><td>176,300</td><td class="up">+11.4%</td><td>226</td><td><span class="badge b-blue">ينمو</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="inventory" class="page">
+      <div class="section-title"><div><h3>المخزون والمشتريات</h3><p>من المنتج إلى المورد: كمية، سرعة حركة، أيام تغطية، وقرار إعادة الطلب.</p></div></div>
+      <div class="grid kpis">
+        <div class="card kpi"><div class="label">قيمة المخزون</div><div class="value">3.72M</div><div class="delta mini">قيمة تجريبية</div></div>
+        <div class="card kpi"><div class="label">مخزون راكد</div><div class="value">428K</div><div class="delta down">11.5% من المخزون</div></div>
+        <div class="card kpi"><div class="label">أصناف حرجة</div><div class="value">18</div><div class="delta warn">أقل من 10 أيام</div></div>
+        <div class="card kpi"><div class="label">طلبات شراء مفتوحة</div><div class="value">27</div><div class="delta mini">8 متأخرة</div></div>
+      </div>
+      <div class="grid split-eq">
+        <div class="card">
+          <div class="card-head"><h3>مثال تحليل مخزون</h3><span class="mini">Days of Stock</span></div>
+          <table>
+            <thead><tr><th>SKU</th><th>المنتج</th><th>المخزون</th><th>بيع 30 يوم</th><th>التغطية</th></tr></thead>
+            <tbody>
+              <tr><td>PF-408</td><td>منتج ضيافة</td><td>12</td><td>48</td><td><span class="badge b-red">7.5 أيام</span></td></tr>
+              <tr><td>PF-643</td><td>منتج مطبخ</td><td>54</td><td>36</td><td><span class="badge b-green">45 يوم</span></td></tr>
+              <tr><td>PF-212</td><td>منتج منزلي</td><td>30</td><td>62</td><td><span class="badge b-yellow">14.5 يوم</span></td></tr>
+              <tr><td>HM-70</td><td>كاسات هوم ماستر</td><td>186</td><td>10</td><td><span class="badge b-red">راكد</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>حالات أوامر الشراء</h3><span class="mini">Pipeline</span></div>
+          <div class="pipeline">
+            <div class="pipe"><span class="mini">جديد</span><div class="n">6</div></div>
+            <div class="pipe"><span class="mini">بانتظار اعتماد</span><div class="n">4</div></div>
+            <div class="pipe"><span class="mini">تم الطلب</span><div class="n">9</div></div>
+            <div class="pipe"><span class="mini">بالطريق</span><div class="n">5</div></div>
+            <div class="pipe"><span class="mini">متأخر</span><div class="n" style="color:var(--danger)">3</div></div>
+          </div>
+          <div class="alert red" style="margin-top:16px"><i></i><div><strong>مورد متوقف</strong><span>يمكن للنظام إظهار الموردين المتوقفين وتأثيرهم على الأصناف المعرضة للنفاد.</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="marketing" class="page">
+      <div class="section-title"><div><h3>التجارة الإلكترونية والتسويق</h3><p>قياس القنوات على أساس المبيعات والربحية وليس الزيارات فقط.</p></div></div>
+      <div class="grid kpis">
+        <div class="card kpi"><div class="label">إجمالي الإنفاق</div><div class="value">76,400</div><div class="delta mini">ر.س</div></div>
+        <div class="card kpi"><div class="label">مبيعات منسوبة للإعلانات</div><div class="value">351K</div><div class="delta up">▲ 15.8%</div></div>
+        <div class="card kpi"><div class="label">ROAS</div><div class="value">4.6x</div><div class="delta up">▲ 0.8x</div></div>
+        <div class="card kpi"><div class="label">CPA</div><div class="value">42 ر.س</div><div class="delta up">تحسن 9%</div></div>
+      </div>
+      <div class="grid split">
+        <div class="card"><div class="card-head"><h3>أداء المنصات</h3><span class="mini">صرف مقابل مبيعات</span></div><canvas id="marketingChart"></canvas></div>
+        <div class="card">
+          <div class="card-head"><h3>قنوات التجارة الإلكترونية</h3><span class="mini">مقارنة تشغيلية</span></div>
+          <table>
+            <thead><tr><th>القناة</th><th>المبيعات</th><th>AOV</th><th>ملاحظة</th></tr></thead>
+            <tbody>
+              <tr><td>Salla</td><td>324,700</td><td>298</td><td><span class="badge b-green">الأقوى</span></td></tr>
+              <tr><td>Noon</td><td>112,400</td><td>261</td><td><span class="badge b-yellow">محتوى ومخزون</span></td></tr>
+              <tr><td>Amazon</td><td>69,100</td><td>282</td><td><span class="badge b-blue">فرصة نمو</span></td></tr>
+            </tbody>
+          </table>
+          <div class="alert green" style="margin-top:15px"><i></i><div><strong>قاعدة قرار</strong><span>لا نزيد الميزانية على قناة لمجرد ارتفاع المبيعات؛ الأفضل مقارنة صافي الربح وROAS ومعدل الإرجاع.</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tasks" class="page">
+      <div class="section-title"><div><h3>المهام والاجتماعات</h3><p>كل قرار اجتماع يتحول إلى مهمة لها مسؤول وموعد وحالة.</p></div></div>
+      <div class="grid kpis">
+        <div class="card kpi"><div class="label">إجمالي المهام</div><div class="value">43</div><div class="delta mini">هذا الأسبوع</div></div>
+        <div class="card kpi"><div class="label">مكتملة</div><div class="value">27</div><div class="delta up">62.8%</div></div>
+        <div class="card kpi"><div class="label">قيد التنفيذ</div><div class="value">9</div><div class="delta warn">متابعة</div></div>
+        <div class="card kpi"><div class="label">متأخرة</div><div class="value">7</div><div class="delta down">تحتاج تصعيد</div></div>
+      </div>
+      <div class="kanban">
+        <div class="col"><h4>لم تبدأ</h4>
+          <div class="task"><strong>مراجعة أسعار 38 منتج جديد</strong><small>المسؤول: التسعير</small><span class="pill">أولوية عالية</span></div>
+          <div class="task"><strong>تحديث قائمة الموردين المتوقفين</strong><small>المسؤول: المشتريات</small><span class="pill">اليوم</span></div>
+        </div>
+        <div class="col"><h4>قيد التنفيذ</h4>
+          <div class="task"><strong>تحديث مخزون المنتجات النشطة في Noon</strong><small>المسؤول: التجارة الإلكترونية</small><span class="pill">70%</span></div>
+          <div class="task"><strong>صيانة اللوحة الخارجية</strong><small>المسؤول: فرع الرياض</small><span class="pill">بانتظار عرض</span></div>
+        </div>
+        <div class="col"><h4>بانتظار طرف آخر</h4>
+          <div class="task"><strong>كاميرات عدّ الزوار</strong><small>بانتظار الشركة المزودة</small><span class="pill">خارجي</span></div>
+          <div class="task"><strong>اعتماد حملة تسويقية</strong><small>بانتظار الإدارة</small><span class="pill">اعتماد</span></div>
+        </div>
+        <div class="col"><h4>مكتملة</h4>
+          <div class="task"><strong>تجهيز ملف تحليل المبيعات</strong><small>تم الرفع والمراجعة</small><span class="pill">100%</span></div>
+          <div class="task"><strong>زيارة منافسين</strong><small>تم توثيق الأسعار والملاحظات</small><span class="pill">100%</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><h3>سجل قرارات الاجتماعات</h3><span class="mini">مثال</span></div>
+        <table>
+          <thead><tr><th>القرار</th><th>المسؤول</th><th>الموعد</th><th>الحالة</th></tr></thead>
+          <tbody>
+            <tr><td>توحيد مسار الدخول في فرع الرياض</td><td>مدير الفرع</td><td>30/09/2026</td><td><span class="badge b-yellow">قيد التنفيذ</span></td></tr>
+            <tr><td>متابعة كاميرات العدّ للرياض والأحساء</td><td>التسويق</td><td>29/09/2026</td><td><span class="badge b-blue">بانتظار المورد</span></td></tr>
+            <tr><td>مراجعة المنتجات الناقصة للموردين</td><td>المشتريات</td><td>28/09/2026</td><td><span class="badge b-red">متأخر</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="architecture" class="page">
+      <div class="section-title"><div><h3>هيكل النظام وخطة التنفيذ</h3><p>الأفضل فصل الإدخال عن قواعد البيانات عن لوحات الإدارة.</p></div></div>
+      <div class="grid split-eq">
+        <div class="card">
+          <h3>الهيكل المقترح</h3>
+          <div class="pipeline" style="grid-template-columns:1fr">
+            <div class="pipe"><span class="mini">1 — مصادر البيانات</span><div style="margin-top:8px">سماك • سلة • Noon • Amazon • الكاميرات • المشتريات</div></div>
+            <div class="pipe"><span class="mini">2 — ملفات الإدخال</span><div style="margin-top:8px">المبيعات • التارجت • المهام • أوامر الشراء • حملات التسويق</div></div>
+            <div class="pipe"><span class="mini">3 — Master Database</span><div style="margin-top:8px">منتجات • فروع • موردون • موظفون • تواريخ • أكواد موحدة</div></div>
+            <div class="pipe"><span class="mini">4 — التقارير</span><div style="margin-top:8px">لوحة الإدارة • الفروع • التشغيل • التجارة الإلكترونية</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>مراحل البناء</h3>
+          <div class="alerts">
+            <div class="alert green"><i></i><div><strong>المرحلة 1</strong><span>Dashboard + Sales + Targets + Tasks + Meetings.</span></div></div>
+            <div class="alert yellow"><i></i><div><strong>المرحلة 2</strong><span>Inventory + Purchases + Suppliers + Pricing.</span></div></div>
+            <div class="alert yellow"><i></i><div><strong>المرحلة 3</strong><span>E-commerce + Marketing + Product Master.</span></div></div>
+            <div class="alert green"><i></i><div><strong>المرحلة 4</strong><span>أتمتة API / Apps Script + تنبيهات + Looker Studio.</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-head"><h3>قواعد حوكمة مهمة</h3><span class="mini">حتى لا يتحول النظام إلى فوضى</span></div>
+        <table>
+          <thead><tr><th>القاعدة</th><th>التطبيق</th></tr></thead>
+          <tbody>
+            <tr><td>مصدر واحد للحقيقة</td><td>كل KPI له مصدر واضح ومسؤول واحد.</td></tr>
+            <tr><td>لا إدخال مزدوج</td><td>البيانات الأساسية تدخل مرة واحدة فقط ثم يعاد استخدامها.</td></tr>
+            <tr><td>صلاحيات حسب الدور</td><td>الإدارة ترى الكل، وكل قسم يرى أو يعدّل ما يخصه.</td></tr>
+            <tr><td>كود موحد للمنتج</td><td>SKU واحد عبر سماك وسلة ونون وأمازون.</td></tr>
+            <tr><td>اجتماع = قرار = مهمة</td><td>أي قرار يجب أن يكون له مسؤول وموعد وحالة.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="foot">تصور تنفيذي تجريبي — إعداد أيمن اليوسفي • FOUZAN OS</div>
+  </main>
+</div>
+
+<script>
+const titles={
+  dashboard:"لوحة الإدارة العليا",
+  sales:"المبيعات والفروع",
+  inventory:"المخزون والمشتريات",
+  marketing:"التجارة الإلكترونية والتسويق",
+  tasks:"المهام والاجتماعات",
+  architecture:"هيكل النظام والتنفيذ"
+};
+
+document.querySelectorAll('.nav button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const id=btn.dataset.page;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('pageTitle').textContent=titles[id];
+    document.getElementById('sidebar').classList.remove('open');
+    setTimeout(drawAll,60);
+  });
+});
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function toggleTheme(){
+  const html=document.documentElement;
+  html.dataset.theme = html.dataset.theme==="light" ? "dark" : "light";
+  drawAll();
+}
+function money(n){return Math.round(n).toLocaleString('en-US')+" ر.س"}
+function simulateUpdate(){
+  const base=48320 + Math.floor(Math.random()*9000-4500);
+  document.getElementById('kpiToday').textContent=money(base);
+  const ms=1284600 + Math.floor(Math.random()*60000-30000);
+  document.getElementById('heroSales').textContent=money(ms);
+  document.getElementById('heroTarget').textContent=(79+Math.random()*5).toFixed(1)+"%";
+  drawAll();
+}
+function refreshDemo(){simulateUpdate()}
+
+function cssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}
+function prepCanvas(id){
+  const c=document.getElementById(id); if(!c || !c.offsetParent)return null;
+  const ratio=window.devicePixelRatio||1;
+  const w=c.clientWidth,h=c.clientHeight;
+  c.width=w*ratio;c.height=h*ratio;
+  const ctx=c.getContext('2d');ctx.setTransform(ratio,0,0,ratio,0,0);
+  return {c,ctx,w,h};
+}
+function lineChart(id, series){
+  const o=prepCanvas(id);if(!o)return;
+  const {ctx,w,h}=o, pad={l:38,r:15,t:20,b:28};
+  ctx.clearRect(0,0,w,h);
+  const all=series.flatMap(s=>s.data), max=Math.max(...all)*1.12,min=Math.min(...all)*.9;
+  ctx.strokeStyle=cssVar('--line');ctx.lineWidth=1;
+  ctx.fillStyle=cssVar('--muted');ctx.font='11px Tahoma';
+  for(let i=0;i<5;i++){
+    let y=pad.t+(h-pad.t-pad.b)*i/4;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+  }
+  series.forEach((s,si)=>{
+    const col=si===0?cssVar('--accent'):si===1?cssVar('--accent2'):cssVar('--purple');
+    ctx.beginPath();ctx.lineWidth=2.5;ctx.strokeStyle=col;
+    s.data.forEach((v,i)=>{
+      const x=pad.l+(w-pad.l-pad.r)*i/(s.data.length-1);
+      const y=pad.t+(h-pad.t-pad.b)*(1-(v-min)/(max-min));
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    });ctx.stroke();
+  });
+}
+function barChart(id, labels, vals1, vals2){
+  const o=prepCanvas(id);if(!o)return;
+  const {ctx,w,h}=o,p={l:35,r:12,t:20,b:45};
+  ctx.clearRect(0,0,w,h);
+  const max=Math.max(...vals1,...vals2)*1.15;
+  ctx.strokeStyle=cssVar('--line');ctx.fillStyle=cssVar('--muted');ctx.font='10px Tahoma';
+  for(let i=0;i<5;i++){
+    const y=p.t+(h-p.t-p.b)*i/4;
+    ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(w-p.r,y);ctx.stroke();
+  }
+  const group=(w-p.l-p.r)/labels.length, bw=Math.min(22,group*.28);
+  labels.forEach((lab,i)=>{
+    const x=p.l+group*i+group/2;
+    const h1=(h-p.t-p.b)*(vals1[i]/max),h2=(h-p.t-p.b)*(vals2[i]/max);
+    ctx.fillStyle=cssVar('--accent');ctx.fillRect(x-bw-2,h-p.b-h1,bw,h1);
+    ctx.fillStyle=cssVar('--accent2');ctx.fillRect(x+2,h-p.b-h2,bw,h2);
+    ctx.fillStyle=cssVar('--muted');ctx.textAlign='center';ctx.fillText(lab,x,h-18);
+  });
+}
+function drawAll(){
+  lineChart('salesTrend',[
+    {data:[82,88,84,93,96,91,101,106,109,115,119,128]},
+    {data:[78,80,82,84,88,90,91,94,96,99,101,104]}
+  ]);
+  lineChart('branchChart',[
+    {data:[38,42,39,45,47,50,44,48,52,55,49,57,59,62]},
+    {data:[23,25,24,26,29,28,31,30,32,34,33,35,37,39]}
+  ]);
+  barChart('marketingChart',['Meta','TikTok','Google','Snap'],[22,18,16,20],[95,71,82,58]);
+}
+window.addEventListener('resize',drawAll);
+setTimeout(drawAll,100);
+</script>
+</body>
+</html>
